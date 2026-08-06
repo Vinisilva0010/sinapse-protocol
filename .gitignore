@@ -1,0 +1,42 @@
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+.surfpool
+
+# Dependencies
+node_modules/
+ml-venv/
+venv/
+.venv/
+
+# Build/cache
+target/
+.anchor/
+.next/
+dist/
+build/
+out/
+coverage/
+.cache/
+.turbo/
+.pytest_cache/
+__pycache__/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and system files
+*.log
+.DS_Store
+
+# Large ML files
+*.pt
+*.pth
+*.bin
+*.safetensors

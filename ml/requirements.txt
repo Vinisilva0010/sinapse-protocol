@@ -1,0 +1,8 @@
+# NÃO instale isso direto com "pip install -r requirements.txt" antes de
+# instalar o torch separado (ver instrução abaixo) — senão o pip baixa a
+# versão com CUDA (uns 5-6GB), mesmo sem placa de vídeo.
+flwr>=1.29
+medmnist>=2.2.3
+solders>=0.26.0
+solana>=0.36.6
+anchorpy

@@ -1,0 +1,19 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+contribution-registry = "5VS6Z35Rwr81ZT75cmMTxuvJHtJaNFcCejkWK7QYPfuA"
+sinapse_protocol = "J8ByDyJQWRLEk5X3RkmDBGSV2wimNt32tXsUQfUrtV1A"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"
+
+[hooks]

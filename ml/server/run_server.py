@@ -1,9 +1,10 @@
+from flwr.app import Context
 import flwr as fl
 from ml.client.hospital_client import HospitalClient
 
 
-def client_fn(cid: str) -> fl.client.Client:
-    hospital_id = int(cid)
+def client_fn(context: Context) -> fl.client.Client:
+    hospital_id = int(context.node_config["partition-id"])
     return HospitalClient(hospital_id=hospital_id).to_client()
 
 

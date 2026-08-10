@@ -29,7 +29,7 @@ def main():
         evaluate_metrics_aggregation_fn=weighted_average,
     )
 
-    print(f"Iniciando simulação federada com {num_hospitals} hospitais por {num_rounds} rodadas...")
+    print(f"Starting federated simulation with {num_hospitals} hospitals over {num_rounds} rounds...")
 
     history = fl.simulation.start_simulation(
         client_fn=client_fn,
@@ -39,10 +39,10 @@ def main():
     )
 
     print("=" * 50)
-    print("Treinamento federado concluído.")
+    print("Federated training complete.")
     if history.metrics_distributed and "accuracy" in history.metrics_distributed:
         final_acc = history.metrics_distributed["accuracy"][-1][1]
-        print(f"Acurácia final agregada no servidor: {final_acc * 100:.2f}%")
+        print(f"Final aggregated accuracy on server: {final_acc * 100:.2f}%")
     print("=" * 50)
 
 

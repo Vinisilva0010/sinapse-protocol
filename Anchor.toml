@@ -5,12 +5,11 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-contribution-registry = "5VS6Z35Rwr81ZT75cmMTxuvJHtJaNFcCejkWK7QYPfuA"
-sinapse_protocol = "J8ByDyJQWRLEk5X3RkmDBGSV2wimNt32tXsUQfUrtV1A"
+[programs.devnet]
+contribution-registry = "B5ACaF9VKaz4m5r1ZZuaysztfkf9Ptun4apgARyPzdUQ"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

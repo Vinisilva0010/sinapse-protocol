@@ -2,6 +2,9 @@
 
 ## Antes de tudo: roda o setup.sh
 
+https://youtu.be/rtwpod0AtPM
+https://www.youtube.com/watch?v=rtwpod0AtPM
+
 Baixa o arquivo `sinapse-setup.sh`, coloca numa pasta onde você quer criar
 o projeto, e roda:
 

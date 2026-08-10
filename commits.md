@@ -16,3 +16,8 @@ Fase 12	test: end-to-end flow verification
 Fase 13	style: apply brutalist design system to dashboard and explorer
 Fase 14	chore: deploy frontend to Vercel and finalize devnet deployment
 Qualquer correção de bug no meio de uma fase	fix: (descreve o que quebrou, curto)
+
+
+
+
+find . -type f | grep -v -E 'node_modules|\.git|target|ml-venv|\.next|__pycache__' | sort

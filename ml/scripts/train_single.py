@@ -37,15 +37,12 @@ def train(model, train_loader, criterion, optimizer, device):
     for images, targets in train_loader:
         images = images.to(device)
         targets = targets.view(-1).long().to(device)
-
         optimizer.zero_grad()
         outputs = model(images)
         loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
-
         total_loss += loss.item() * images.size(0)
-
     return total_loss / len(train_loader.dataset)
 
 
@@ -57,12 +54,10 @@ def evaluate(model, test_loader, device):
         for images, targets in test_loader:
             images = images.to(device)
             targets = targets.view(-1).long().to(device)
-
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += targets.size(0)
             correct += (predicted == targets).sum().item()
-
     return 100.0 * correct / total
 
 
@@ -70,9 +65,8 @@ def main():
     info = INFO['pneumoniamnist']
     n_channels = info['n_channels']
     n_classes = len(info['label'])
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Usando dispositivo: {device}")
+    print(f"Using device: {device}")
 
     data_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -81,7 +75,6 @@ def main():
 
     train_dataset = PneumoniaMNIST(split='train', transform=data_transform, download=True)
     test_dataset = PneumoniaMNIST(split='test', transform=data_transform, download=True)
-
     train_loader = DataLoader(dataset=train_dataset, batch_size=64, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=64, shuffle=False)
 
@@ -90,15 +83,15 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     epochs = 5
-    print(f"Iniciando treinamento ({epochs} épocas)...")
+    print(f"Starting training ({epochs} epochs)...")
     for epoch in range(1, epochs + 1):
         loss = train(model, train_loader, criterion, optimizer, device)
         acc = evaluate(model, test_loader, device)
-        print(f"Época [{epoch}/{epochs}] - Loss: {loss:.4f} - Acurácia (Test): {acc:.2f}%")
+        print(f"Epoch [{epoch}/{epochs}] - Loss: {loss:.4f} - Test accuracy: {acc:.2f}%")
 
     final_acc = evaluate(model, test_loader, device)
     print("=" * 40)
-    print(f"Treinamento concluído. Acurácia final no conjunto de teste: {final_acc:.2f}%")
+    print(f"Training complete. Final test accuracy: {final_acc:.2f}%")
     print("=" * 40)
 
 

@@ -9,7 +9,7 @@ skip-lint = false
 contribution-registry = "B5ACaF9VKaz4m5r1ZZuaysztfkf9Ptun4apgARyPzdUQ"
 
 [provider]
-cluster = "devnet"
+cluster = "https://devnet.helius-rpc.com/?api-key=99a74efc-f197-45d6-a462-1ef1672319aa"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

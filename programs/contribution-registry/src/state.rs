@@ -12,6 +12,7 @@ pub struct RegistryConfig {
 pub struct HospitalProfile {
     pub authority: Pubkey,
     pub contributions_count: u64,
+    pub rewarded_count: u64,
     pub is_flagged_saboteur: bool,
     pub bump: u8,
 }

@@ -1,9 +1,11 @@
-use anchor_client::{
-    CommitmentConfig,
-    Client, Cluster, Signer,
+use anchor_client::{Client, Cluster};
+use anchor_client::solana_sdk::{
+    commitment_config::CommitmentConfig,
+    pubkey::Pubkey,
+    signature::{read_keypair_file, Keypair, Signer},
+    system_program,
+    system_instruction,
 };
-use solana_keypair::read_keypair_file;
-use solana_pubkey::{pubkey, Pubkey};
 
 #[test]
 fn test_full_flow() {
@@ -16,31 +18,33 @@ fn test_full_flow() {
     let program_id = contribution_registry::ID;
     let program = client.program(program_id).unwrap();
 
-    let system_program = pubkey!("11111111111111111111111111111111");
+    let system_program_id = system_program::ID;
 
     let (registry_config, _bump) = Pubkey::find_program_address(&[b"config"], &program_id);
-    let (hospital_profile, _bump) = Pubkey::find_program_address(&[b"hospital", payer.pubkey().as_ref()], &program_id);
 
-    let tx_init = program
+    let hospital_kp = Keypair::new();
+    let (hospital_profile, _bump) = Pubkey::find_program_address(&[b"hospital", hospital_kp.pubkey().as_ref()], &program_id);
+
+    let tx_fund = program
         .request()
-        .accounts(contribution_registry::accounts::Initialize {
-            registry_config,
-            admin: payer.pubkey(),
-            system_program,
-        })
-        .args(contribution_registry::instruction::Initialize {})
+        .instruction(system_instruction::transfer(
+            &payer.pubkey(),
+            &hospital_kp.pubkey(),
+            10_000_000,
+        ))
         .send()
-        .expect("initialize failed");
-    println!("Initialize signature: {}", tx_init);
+        .expect("funding hospital keypair failed");
+    println!("Fund hospital signature: {}", tx_fund);
 
     let tx_reg = program
         .request()
         .accounts(contribution_registry::accounts::RegisterHospital {
             hospital_profile,
-            authority: payer.pubkey(),
-            system_program,
+            authority: hospital_kp.pubkey(),
+            system_program: system_program_id,
         })
         .args(contribution_registry::instruction::RegisterHospital {})
+        .signer(&hospital_kp)
         .send()
         .expect("register_hospital failed");
     println!("Register hospital signature: {}", tx_reg);
@@ -60,15 +64,17 @@ fn test_full_flow() {
         .expect("record_contribution failed");
     println!("Record contribution signature: {}", tx_contrib);
 
-    let tx_flag = program
+    let tx_reward = program
         .request()
-        .accounts(contribution_registry::accounts::FlagSaboteur {
+        .accounts(contribution_registry::accounts::DistributeReward {
             registry_config,
             hospital_profile,
+            authority: hospital_kp.pubkey(),
             admin: payer.pubkey(),
+            system_program: system_program_id,
         })
-        .args(contribution_registry::instruction::FlagSaboteur {})
+        .args(contribution_registry::instruction::DistributeReward {})
         .send()
-        .expect("flag_saboteur failed");
-    println!("Flag saboteur signature: {}", tx_flag);
+        .expect("distribute_reward failed");
+    println!("Distribute reward signature: {}", tx_reward);
 }

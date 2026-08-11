@@ -28,4 +28,8 @@ pub mod contribution_registry {
     pub fn flag_saboteur(ctx: Context<FlagSaboteur>) -> Result<()> {
         instructions::flag_saboteur::flag_saboteur(ctx)
     }
+
+    pub fn distribute_reward(ctx: Context<DistributeReward>) -> Result<()> {
+        instructions::distribute_reward::distribute_reward(ctx)
+    }
 }

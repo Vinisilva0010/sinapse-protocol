@@ -20,6 +20,7 @@ pub fn register_hospital(ctx: Context<RegisterHospital>) -> Result<()> {
     let profile = &mut ctx.accounts.hospital_profile;
     profile.authority = ctx.accounts.authority.key();
     profile.contributions_count = 0;
+    profile.rewarded_count = 0;
     profile.is_flagged_saboteur = false;
     profile.bump = ctx.bumps.hospital_profile;
     Ok(())

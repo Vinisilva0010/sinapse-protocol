@@ -21,3 +21,6 @@ Qualquer correção de bug no meio de uma fase	fix: (descreve o que quebrou, cur
 
 
 find . -type f | grep -v -E 'node_modules|\.git|target|ml-venv|\.next|__pycache__' | sort
+
+
+source ml-venv/bin/activate

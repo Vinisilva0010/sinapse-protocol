@@ -89,59 +89,42 @@ Acurácia federada final: 85.42%, subindo rodada a rodada, batendo o
 
 baseline solo. Vídeo da semana 1 já gravado e enviado.
 
-FASE 4
-A Fase 4 implementou a gestão de identidade e reputação dos hospitais no programa Anchor contribution-registry. O contrato foi compilado, implantado na Solana Devnet e validado via testes automatizados executando todas as instruções on-chain.
+JÁ CONSTRUÍDO ATÉ AGORA:
+Fase 1 completa — ambiente Python funcionando, dataset pneumoniamnist
+carregando certo (torch + torchvision instalados juntos, do mesmo
+índice CPU).
+Fase 2 completa — baseline solo treinado (train_single.py), prints em
+inglês.
+Fase 3 completa — 3 hospitais treinando via Flower (run_server.py, com
+"python3 -m ml.server.run_server"). Acurácia federada final: 85.42%,
+batendo o baseline solo.
+Fase 4 completa — programa Anchor contribution-registry no ar em
+DEVNET (Program ID B5ACaF9VKaz4m5r1ZZuaysztfkf9Ptun4apgARyPzdUQ), via
+RPC da Helius no Anchor.toml (a RPC pública da devnet falha em deploy
+por congestionamento). Conta HospitalProfile (authority,
+contributions_count, rewarded_count, is_flagged_saboteur, bump) e
+RegistryConfig (admin, bump). RBAC real: só o admin (has_one = admin)
+pode chamar record_contribution, flag_saboteur e distribute_reward —
+só register_hospital é auto-registrado pelo próprio hospital, de
+propósito. Nenhuma instrução aceita auto-atestação de contribuição.
+Fase 5 completa — ml/bridge/solana_bridge.py fazendo a ponte
+Python↔Solana via AnchorPy: calcula hash SHA256 real dos pesos do
+modelo, corrige o IDL do Anchor 0.30 pra compatibilidade com
+solders/anchorpy, e grava a contribuição on-chain de verdade
+(transação confirmada na devnet). Rodar com
+"python3 -m ml.bridge.solana_bridge".
+Fase 6 completa — distribute_reward paga só a diferença entre
+contributions_count e rewarded_count (não a contagem inteira de novo),
+evitando pagamento duplicado pela mesma contribuição — bug real
+encontrado e corrigido antes de ir pra produção. Transferência via CPI
+ao system_program.
+Vídeo da semana 1 (Fases 1-3) e semana 2 (Fases 4-6) gravados e
+enviados.
 
-Modelagem de Estado (state.rs)
-Foi criada a estrutura da conta PDA HospitalProfile, derivada das seeds [b"hospital", authority], contendo:
-
-authority: Pubkey do hospital.
-
-contributions_count: Contador de contribuições enviadas (u64).
-
-is_flagged_saboteur: Flag booleana indicando se o hospital foi marcado por comportamento malicioso.
-
-bump: Ponto de derivação da PDA.
-
-Instruções e Regras de Negócio (instructions/)
-
-register_hospital: Cria a PDA do hospital zerando o contador e a flag de sabotador.
-
-record_contribution: Recebe um hash de 32 bytes (contribution_hash), valida que o hospital não está marcado como sabotador e incrementa o contador em modo saturating_add.
-
-flag_saboteur: Altera a flag is_flagged_saboteur para true, impedindo novas contribuições do perfil.
-
-Deploy e Validação na Devnet
-
-Configuração do projeto para a rede Devnet (solana config set --url devnet).
-
-Implantação da versão compilada (contribution_registry.so) sob o Program ID B5ACaF9VKaz4m5r1ZZuaysztfkf9Ptun4apgARyPzdUQ.
-
-Execução do fluxo completo de testes em tests/src/test_initialize.rs com cargo test -p tests, confirmando as 4 transações (Initialize, RegisterHospital, RecordContribution, FlagSaboteur) diretamente no cluster.
-
-Fase 5 estabeleceu a ponte de integração entre a camada de Machine Learning (Python) e o programa Anchor na Solana Devnet. O script ml/bridge/solana_bridge.py calcula o hash SHA256 dos pesos do modelo federado e envia a transação de registro on-chain via AnchorPy.
-
-Cálculo de Hash dos Pesos (hash_weights)
-Serializa a lista de arrays numpy com os parâmetros do modelo e gera um digest SHA256 de 32 bytes, garantindo a prova de contribuição sem expor os dados brutos ou a arquitetura interna do hospital.
-
-Tratamento de IDL em Tempo de Execução (fix_idl_for_anchorpy)
-Ajusta o IDL gerado pelo Anchor 0.30 para ser compatível com as estruturas de serialização da biblioteca solders/anchorpy:
-
-Converte a especificação do tipo pubkey para publicKey.
-
-Normaliza a estrutura das listas de contas (isMut, isSigner) e mapeia os tipos estruturados associados.
-
-Integração RPC e Manipulação de Contexto (record_contribution_async)
-
-Deriva as PDAs registry_config (b"config") e hospital_profile (b"hospital", authority).
-
-Constrói e envia a transação usando o objeto Context nativo do AnchorPy conectado ao RPC da Devnet ([https://api.devnet.solana.com](https://api.devnet.solana.com)).
-
-Validação Executada On-Chain
-O teste do módulo foi executado com sucesso gerando uma conta de teste isolada, registrando a PDA do hospital e enviando a instrução de contribuição. A transação foi gravada e confirmada na Devnet sob a assinatura 4qEEb2CQLSgcgHa23QGJRU5uQAhuXpkVkBbYF3kH2phvkBSxDRd5VWbMNHnuvdznzXadvnVo1VUVK5FGwLCFrKZJ
+FASE ATUAL: 7
 
 
-fase atual: 6
+
 
 
 REGRA FIXA: não altere nada de fases já concluídas, não invente
@@ -278,30 +261,70 @@ Sempre da raiz de sinapse-protocol.
 
 
 
-ARQUIVO: sinapse-protocol/ml/bridge/solana_bridge.py (já existe com
-TODO)
+ARQUITETURA DESTA FASE (siga exatamente, não invente estrutura
+diferente):
+- O circuito Arcis (linguagem da Arcium, parecida com Rust) fica na
+  pasta encrypted-ixs/ que o "arcium init" já criou.
+- O circuito recebe os placares de 3 hospitais criptografados numa
+  struct só, soma os três, devolve só o total criptografado — nenhum
+  valor individual é exposto em nenhum momento, nem pro servidor.
+- A chamada pro circuito é feita por um script TypeScript/Node.js
+  dentro da pasta arcium/, usando o SDK oficial da Arcium
+  (@arcium-hq/client ou equivalente que o "arcium init" já deixou no
+  package.json gerado).
+- ml/bridge/arcium_bridge.py vira um wrapper Python que chama esse
+  script Node.js via subprocess e lê o resultado.
 
-O IDL do programa fica em
-sinapse-protocol/target/idl/contribution_registry.json depois de rodar
-"anchor build" (fase 4). Se esse arquivo não existir ainda, rode
-"anchor build" primeiro, não peça pro Gemini inventar o IDL.
+EXEMPLO OFICIAL DE CIRCUITO (adapte este padrão exato, não invente
+sintaxe diferente — isso é o "Hello World" real da documentação da
+Arcium, adaptado pra somar 3 valores em vez de 2):
+
+use arcis::*;
+
+#[encrypted]
+mod circuits {
+    use arcis::*;
+
+    pub struct HospitalScores {
+        score_1: u32,
+        score_2: u32,
+        score_3: u32,
+    }
+
+    #[instruction]
+    pub fn aggregate_scores(input_ctxt: Enc<Shared, HospitalScores>) -> Enc<Shared, u32> {
+        let input = input_ctxt.to_arcis();
+        let total = input.score_1 + input.score_2 + input.score_3;
+        input_ctxt.owner.from_arcis(total)
+    }
+}
 
 TAREFA DESTA FASE:
-Depois de cada rodada de treino do Flower, calcular hash da
-contribuição de cada hospital e enviar pro programa Anchor registrar em
-devnet, usando AnchorPy.
+1. Adaptar o circuito acima dentro de encrypted-ixs/, ajustando pro
+   nome de arquivo que o "arcium init" gerou.
+2. Escrever o script TypeScript que chama esse circuito (init da
+   computation definition + invocação), seguindo o padrão do guia
+   oficial linkado acima — se você (Gemini) não tiver certeza da
+   derivação exata de alguma PDA/conta, AVISE explicitamente em vez de
+   inventar um endereço, porque conta errada aqui não dá erro de
+   compilação, dá erro silencioso ou trava em execução.
+3. ml/bridge/arcium_bridge.py chamando esse script via subprocess.
 
 NÃO FAÇA:
-- Não mude a lógica de treino da fase 3.
-- Não mude a estrutura do programa Anchor da fase 4, só chame ele.
+- Não tente agregar o modelo inteiro, só os 3 placares (números).
+- Não invente nome de pacote npm — usa o que já estiver no
+  package.json que o "arcium init" gerou.
+- Se travar em algo muito específico da Arcium que o guia oficial não
+  cobre claramente, PARE e me avise em vez de inventar — essa é a parte
+  mais nova/menos madura do stack inteiro do projeto.
 
 PRONTO QUANDO:
-Depois de uma rodada, dá pra ver no Solana Explorer (devnet) que o hash
-foi registrado.
+Rodar com os 3 placares de teste e o resultado agregado (a soma) sai
+certo, sem nenhum valor individual aparecer em nenhum log.
 
-FORMATO OBRIGATÓRIO DA RESPOSTA:
-cat > ml/bridge/solana_bridge.py << 'EOF'
-(arquivo inteiro)
-EOF
-Sem explicação longa antes.
-
+FORMATO OBRIGATÓRIO DA RESPOSTA: um comando cat > por arquivo (circuito
+Arcis, script TypeScript, arcium_bridge.py), cada um com o conteúdo
+completo. Antes de cada comando, uma linha curta dizendo o que aquele
+arquivo faz. Se tiver alguma incerteza real sobre uma conta/PDA
+específica da Arcium, declare isso explicitamente ANTES do comando, não
+depois.

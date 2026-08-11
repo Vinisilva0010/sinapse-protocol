@@ -16,7 +16,7 @@ from solders.transaction import VersionedTransaction
 PROGRAM_ID = Pubkey.from_string("B5ACaF9VKaz4m5r1ZZuaysztfkf9Ptun4apgARyPzdUQ")
 DEFAULT_KEYPAIR_PATH = Path.home() / ".config" / "solana" / "id.json"
 IDL_PATH = Path("target/idl/contribution_registry.json")
-SYSTEM_PROGRAM_ID = Pubkey.from_string("11111111111111111111111111111111")
+from solders.system_program import ID as SYSTEM_PROGRAM_ID
 
 
 def hash_weights(weights: List[np.ndarray]) -> bytes:

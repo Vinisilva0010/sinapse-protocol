@@ -6,4 +6,6 @@ pub enum ContributionError {
     HospitalIsSaboteur,
     #[msg("Unauthorized action.")]
     Unauthorized,
+    #[msg("No contributions recorded to claim reward.")]
+    NoContributions,
 }

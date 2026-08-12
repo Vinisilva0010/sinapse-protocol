@@ -1,3 +1,18 @@
 allowBuilds:
+  '@stellar/stellar-sdk': true
+  blake-hash: true
+  bufferutil: true
+  protobufjs: true
   sharp: false
+  tiny-secp256k1: true
   unrs-resolver: false
+  usb: true
+  utf-8-validate: true
+onlyBuiltDependencies:
+  - '@stellar/stellar-sdk'
+  - blake-hash
+  - bufferutil
+  - protobufjs
+  - tiny-secp256k1
+  - usb
+  - utf-8-validate

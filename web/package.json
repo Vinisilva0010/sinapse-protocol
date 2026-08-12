@@ -9,7 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@solana/kit": "^7.0.0",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.38",
+    "@solana/web3.js": "^1.98.4",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -24,5 +29,16 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@11.13.0"
+  "packageManager": "pnpm@11.13.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@stellar/stellar-sdk",
+      "blake-hash",
+      "bufferutil",
+      "protobufjs",
+      "tiny-secp256k1",
+      "usb",
+      "utf-8-validate"
+    ]
+  }
 }

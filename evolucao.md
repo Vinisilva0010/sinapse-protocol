@@ -121,7 +121,38 @@ ao system_program.
 Vídeo da semana 1 (Fases 1-3) e semana 2 (Fases 4-6) gravados e
 enviados.
 
-FASE ATUAL: 7
+Fase 7 completa — agregação confidencial via Arcium funcionando de
+verdade em cluster MPC local (Docker), projeto separado em
+~/confidential_aggregation (fora do sinapse-protocol, porque Anchor
+não aceita workspace dentro de workspace).
+
+Circuito (encrypted-ixs/src/lib.rs): soma 3 placares de hospital
+criptografados (u8 cada), devolve só o total (u16) — nenhum valor
+individual é visível em nenhum momento, nem pro servidor.
+
+Fluxo real de 2 instruções: init_aggregate_scores_comp_def (registra o
+circuito on-chain, roda uma vez) e aggregate_scores (invoca a
+computação, aguarda callback do cluster MPC via
+awaitComputationFinalization). Testado com placares reais
+(85+90+88=263), resultado bateu certo, assinaturas de transação reais
+na devnet local.
+
+Peça-chave: a resolução de conta (mxeAccount, compDefAccount,
+addressLookupTable) não é automática pelo Anchor client padrão — essas
+contas usam macro própria da Arcium (derive_mxe_pda!, etc), não seeds
+padrão. Por isso existe uma função helper (initAggregateScoresCompDef)
+dentro do próprio arquivo de teste que resolve isso na mão antes de
+chamar a instrução.
+
+
+
+
+
+
+
+
+
+FASE ATUAL: 8
 
 
 

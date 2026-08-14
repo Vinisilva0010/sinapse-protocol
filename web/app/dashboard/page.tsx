@@ -1,10 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConnection, useWallet, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { AnchorProvider, Program, type Idl, BN } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import idl from "@/lib/idl/contribution_registry.json";
 
 const PROGRAM_ID = new PublicKey(
@@ -22,6 +31,27 @@ type HospitalProfileAccount = {
 
 type LoadState = "idle" | "loading" | "not-registered" | "registered" | "error";
 
+type ActivityEntry = {
+  signature: string;
+  blockTime: number | null;
+  instructionName: string;
+};
+
+type NetworkStats = {
+  totalHospitals: number;
+  averageContributions: number;
+  rank: number | null;
+};
+
+const EXPLAINERS: Record<string, string> = {
+  Contributions:
+    "Total training rounds this hospital submitted a verified hash for, recorded on-chain.",
+  Rewarded:
+    "Contributions the admin has already paid out. Payment only happens once per contribution.",
+  "Pending reward":
+    "Verified contributions not yet paid - contributionsCount minus rewardedCount, read live from devnet.",
+};
+
 export default function DashboardPage() {
   const { connection } = useConnection();
   const wallet = useWallet();
@@ -33,6 +63,10 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<HospitalProfileAccount | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [registering, setRegistering] = useState(false);
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [networkStats, setNetworkStats] = useState<NetworkStats | null>(null);
+  const [networkStatsError, setNetworkStatsError] = useState<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -53,6 +87,82 @@ export default function DashboardPage() {
     )[0];
   }, []);
 
+  const loadActivity = useCallback(
+    async (hospitalPda: PublicKey) => {
+      setActivityLoading(true);
+      try {
+        const signatures = await connection.getSignaturesForAddress(
+          hospitalPda,
+          { limit: 20 }
+        );
+        const entries: ActivityEntry[] = [];
+        for (const sigInfo of signatures) {
+          let instructionName = "Unknown";
+          try {
+            const tx = await connection.getParsedTransaction(
+              sigInfo.signature,
+              { maxSupportedTransactionVersion: 0 }
+            );
+            const logs = tx?.meta?.logMessages ?? [];
+            const logLine = logs.find((l: string) => l.includes("Instruction:"));
+            if (logLine) {
+              instructionName = logLine.split("Instruction:")[1]?.trim() ?? "Unknown";
+            }
+          } catch (innerErr) {
+            console.error("Failed to parse one transaction:", innerErr);
+          }
+          entries.push({
+            signature: sigInfo.signature,
+            blockTime: sigInfo.blockTime ?? null,
+            instructionName,
+          });
+        }
+        setActivity(entries.reverse());
+      } catch (err) {
+        console.error("loadActivity failed:", err);
+        setActivity([]);
+      } finally {
+        setActivityLoading(false);
+      }
+    },
+    [connection]
+  );
+
+  const loadNetworkStats = useCallback(
+    async (program: Program, myPda: PublicKey) => {
+      setNetworkStatsError("");
+      try {
+        const all = await (program.account as any).hospitalProfile.all([
+          { dataSize: 58 },
+        ]);
+        const totalHospitals = all.length;
+        const counts = all.map((a: any) =>
+          (a.account as unknown as HospitalProfileAccount).contributionsCount.toNumber()
+        );
+        const totalContributions = counts.reduce((sum: number, c: number) => sum + c, 0);
+        const averageContributions =
+          totalHospitals > 0 ? totalContributions / totalHospitals : 0;
+        const sorted = [...all].sort(
+          (a: any, b: any) =>
+            (b.account as unknown as HospitalProfileAccount).contributionsCount.toNumber() -
+            (a.account as unknown as HospitalProfileAccount).contributionsCount.toNumber()
+        );
+        const rankIndex = sorted.findIndex((a: any) => a.publicKey.equals(myPda));
+        setNetworkStats({
+          totalHospitals,
+          averageContributions,
+          rank: rankIndex >= 0 ? rankIndex + 1 : null,
+        });
+      } catch (err) {
+        console.error("loadNetworkStats failed:", err);
+        const message = err instanceof Error ? err.message : String(err);
+        setNetworkStatsError(message);
+        setNetworkStats(null);
+      }
+    },
+    []
+  );
+
   const loadProfile = useCallback(async () => {
     if (!publicKey) return;
 
@@ -61,26 +171,24 @@ export default function DashboardPage() {
 
     setState("loading");
     setErrorMessage("");
-
     try {
       const hospitalPda = getHospitalPda(publicKey);
-      const account = await (program.account as any).hospitalProfile.fetch(
-        hospitalPda
-      );
+      const account = await (program.account as any).hospitalProfile.fetch(hospitalPda);
       setProfile(account as unknown as HospitalProfileAccount);
       setState("registered");
+      loadActivity(hospitalPda);
+      loadNetworkStats(program, hospitalPda);
     } catch (err) {
+      console.error("loadProfile failed:", err);
       const message = err instanceof Error ? err.message : String(err);
-      const lower = message.toLowerCase();
-
-      if (lower.includes("account does not exist")) {
+      if (message.toLowerCase().includes("account does not exist")) {
         setState("not-registered");
       } else {
         setErrorMessage(message);
         setState("error");
       }
     }
-  }, [publicKey, getProgram, getHospitalPda]);
+  }, [publicKey, getProgram, getHospitalPda, loadActivity, loadNetworkStats]);
 
   useEffect(() => {
     if (connected && publicKey && anchorWallet) {
@@ -88,6 +196,8 @@ export default function DashboardPage() {
     } else {
       setState("idle");
       setProfile(null);
+      setActivity([]);
+      setNetworkStats(null);
     }
   }, [connected, publicKey, anchorWallet, loadProfile]);
 
@@ -95,7 +205,7 @@ export default function DashboardPage() {
     if (!publicKey) return;
     const program = getProgram();
     if (!program) {
-      setErrorMessage("Provedor Anchor nao inicializado.");
+      setErrorMessage("Carteira nao conectada ao provedor Anchor.");
       return;
     }
 
@@ -113,6 +223,7 @@ export default function DashboardPage() {
         .rpc();
       await loadProfile();
     } catch (err) {
+      console.error("handleRegister failed:", err);
       const message = err instanceof Error ? err.message : String(err);
       setErrorMessage(message);
       setState("error");
@@ -121,12 +232,25 @@ export default function DashboardPage() {
     }
   }, [publicKey, getProgram, getHospitalPda, loadProfile]);
 
+  const chartData = useMemo(() => {
+    let cumulative = 0;
+    return activity.map((entry: ActivityEntry, idx: number) => {
+      if (entry.instructionName === "RecordContribution") cumulative += 1;
+      return {
+        label: entry.blockTime
+          ? new Date(entry.blockTime * 1000).toLocaleDateString()
+          : `#${idx + 1}`,
+        contributions: cumulative,
+      };
+    });
+  }, [activity]);
+
   return (
     <main
       style={{
         minHeight: "100vh",
         padding: "32px 24px 80px",
-        maxWidth: "880px",
+        maxWidth: "920px",
         margin: "0 auto",
         color: "var(--color-support)",
       }}
@@ -148,7 +272,6 @@ export default function DashboardPage() {
             fontSize: "22px",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            color: "var(--color-support)",
           }}
         >
           Sinapse Protocol
@@ -178,7 +301,6 @@ export default function DashboardPage() {
           fontSize: "32px",
           textTransform: "uppercase",
           marginBottom: "8px",
-          color: "var(--color-support)",
         }}
       >
         Hospital dashboard
@@ -188,12 +310,12 @@ export default function DashboardPage() {
           fontFamily: "var(--font-display)",
           fontSize: "16px",
           marginBottom: "40px",
-          maxWidth: "56ch",
-          color: "var(--color-support)",
+          maxWidth: "60ch",
         }}
       >
         Your on-chain contribution record, read directly from the
-        contribution-registry program on Solana devnet.
+        contribution-registry program on Solana devnet. Every number below is
+        live - nothing is cached or simulated.
       </p>
 
       {!connected && (
@@ -204,7 +326,7 @@ export default function DashboardPage() {
       )}
 
       {connected && state === "loading" && (
-        <EmptyCard title="Loading" body="Reading your hospital profile from devnet…" />
+        <EmptyCard title="Loading" body="Reading your hospital profile from devnet..." />
       )}
 
       {connected && state === "not-registered" && (
@@ -213,7 +335,7 @@ export default function DashboardPage() {
           body="This wallet has no hospital profile on-chain. Register to start recording verified contributions."
         >
           <BrutalButton onClick={handleRegister} disabled={registering}>
-            {registering ? "Registering…" : "Register as hospital"}
+            {registering ? "Registering..." : "Register as hospital"}
           </BrutalButton>
         </EmptyCard>
       )}
@@ -237,40 +359,212 @@ export default function DashboardPage() {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 boxShadow: "6px 6px 0 var(--color-support)",
-                color: "var(--color-support)",
               }}
             >
-              Flagged as saboteur — contributions and rewards are blocked
+              Flagged as saboteur - contributions and rewards are blocked
             </div>
           )}
 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: "20px",
+              marginBottom: "16px",
             }}
           >
             <StatCard
               label="Contributions"
               value={profile.contributionsCount.toString()}
+              explainer={EXPLAINERS["Contributions"]}
             />
-            <StatCard label="Rewarded" value={profile.rewardedCount.toString()} />
+            <StatCard
+              label="Rewarded"
+              value={profile.rewardedCount.toString()}
+              explainer={EXPLAINERS["Rewarded"]}
+            />
             <StatCard
               label="Pending reward"
-              value={profile.contributionsCount
-                .sub(profile.rewardedCount)
-                .toString()}
+              value={profile.contributionsCount.sub(profile.rewardedCount).toString()}
+              explainer={EXPLAINERS["Pending reward"]}
             />
+          </div>
+
+          {networkStatsError && (
+            <div
+              style={{
+                border: "3px solid var(--color-support)",
+                background: "#ffffff",
+                boxShadow: "6px 6px 0 var(--color-support)",
+                padding: "16px 20px",
+                marginBottom: "32px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "12px",
+              }}
+            >
+              Network stats unavailable: {networkStatsError}
+            </div>
+          )}
+
+          {networkStats && (
+            <div
+              style={{
+                border: "3px solid var(--color-support)",
+                background: "#ffffff",
+                boxShadow: "6px 6px 0 var(--color-support)",
+                padding: "20px 24px",
+                marginBottom: "32px",
+                display: "flex",
+                gap: "32px",
+                flexWrap: "wrap",
+                fontFamily: "var(--font-display)",
+              }}
+            >
+              <div>
+                <p style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700 }}>
+                  Network hospitals
+                </p>
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: "22px", fontWeight: 700 }}>
+                  {networkStats.totalHospitals}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700 }}>
+                  Network average contributions
+                </p>
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: "22px", fontWeight: 700 }}>
+                  {networkStats.averageContributions.toFixed(1)}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700 }}>
+                  Your rank
+                </p>
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: "22px", fontWeight: 700 }}>
+                  {networkStats.rank ? `#${networkStats.rank}` : "-"}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {chartData.length > 1 && (
+            <div
+              style={{
+                border: "3px solid var(--color-support)",
+                background: "#ffffff",
+                boxShadow: "6px 6px 0 var(--color-support)",
+                padding: "20px 24px",
+                marginBottom: "32px",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  textTransform: "uppercase",
+                  marginBottom: "12px",
+                }}
+              >
+                Cumulative verified contributions
+              </p>
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={chartData}>
+                  <CartesianGrid stroke="var(--color-support)" strokeOpacity={0.15} />
+                  <XAxis dataKey="label" fontSize={11} />
+                  <YAxis allowDecimals={false} fontSize={11} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="contributions"
+                    stroke="var(--color-identity)"
+                    strokeWidth={3}
+                    dot={{ fill: "var(--color-support)", r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          <div
+            style={{
+              border: "3px solid var(--color-support)",
+              background: "#ffffff",
+              boxShadow: "6px 6px 0 var(--color-support)",
+              padding: "20px 24px",
+              marginBottom: "32px",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "13px",
+                textTransform: "uppercase",
+                marginBottom: "12px",
+              }}
+            >
+              On-chain activity
+            </p>
+            {activityLoading && (
+              <p style={{ fontFamily: "var(--font-display)", fontSize: "14px" }}>
+                Loading transaction history...
+              </p>
+            )}
+            {!activityLoading && activity.length === 0 && (
+              <p style={{ fontFamily: "var(--font-display)", fontSize: "14px" }}>
+                No transactions found for this account yet.
+              </p>
+            )}
+            {!activityLoading && activity.length > 0 && (
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "13px",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ textAlign: "left", borderBottom: "2px solid var(--color-support)" }}>
+                      <th style={{ padding: "8px 8px 8px 0" }}>Date</th>
+                      <th style={{ padding: "8px" }}>Action</th>
+                      <th style={{ padding: "8px" }}>Signature</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activity.map((entry: ActivityEntry) => (
+                      <tr key={entry.signature} style={{ borderBottom: "1px solid var(--color-support)" }}>
+                        <td style={{ padding: "8px 8px 8px 0" }}>
+                          {entry.blockTime
+                            ? new Date(entry.blockTime * 1000).toLocaleString()
+                            : "-"}
+                        </td>
+                        <td style={{ padding: "8px" }}>{entry.instructionName}</td>
+                        <td style={{ padding: "8px" }}>
+                          <a
+                            href={`https://explorer.solana.com/tx/${entry.signature}?cluster=devnet`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "var(--color-identity)", textDecoration: "underline" }}
+                          >
+                            {`${entry.signature.slice(0, 8)}...${entry.signature.slice(-8)}`}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <p
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "13px",
-              marginTop: "32px",
               wordBreak: "break-all",
-              color: "var(--color-support)",
             }}
           >
             Authority: {profile.authority.toBase58()}
@@ -281,7 +575,15 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({
+  label,
+  value,
+  explainer,
+}: {
+  label: string;
+  value: string;
+  explainer?: string;
+}) {
   return (
     <div
       style={{
@@ -309,10 +611,16 @@ function StatCard({ label, value }: { label: string; value: string }) {
           fontFamily: "var(--font-mono)",
           fontWeight: 700,
           fontSize: "32px",
+          marginBottom: explainer ? "8px" : 0,
         }}
       >
         {value}
       </p>
+      {explainer && (
+        <p style={{ fontFamily: "var(--font-display)", fontSize: "12px", lineHeight: 1.4 }}>
+          {explainer}
+        </p>
+      )}
     </div>
   );
 }

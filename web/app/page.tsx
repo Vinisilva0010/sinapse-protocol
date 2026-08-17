@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 const PROGRAM_ID =
   process.env.NEXT_PUBLIC_CONTRIBUTION_REGISTRY_PROGRAM_ID ??
@@ -18,12 +17,37 @@ export default function LandingPage() {
   return (
     <div
       style={{
-        backgroundColor: "var(--color-base, #f9f1f5)",
+        backgroundColor: "var(--color-base, #f7dfec)",
         color: "var(--color-support, #0e0d0d)",
         minHeight: "100vh",
         fontFamily: "var(--font-display), sans-serif",
       }}
     >
+      <style>{`
+        .brutal-hover {
+          transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+        }
+        .brutal-hover:hover {
+          transform: translate(-3px, -3px);
+          box-shadow: 9px 9px 0 var(--color-support, #0e0d0d) !important;
+        }
+        .node-pulse {
+          animation: node-pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes node-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.55; }
+        }
+        .node-orbit {
+          animation: node-orbit 12s linear infinite;
+          transform-origin: 160px 160px;
+        }
+        @keyframes node-orbit {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+
       {/* Top Navigation */}
       <nav
         style={{
@@ -43,7 +67,7 @@ export default function LandingPage() {
             style={{
               width: "18px",
               height: "18px",
-              backgroundColor: "var(--color-shock, #381af8)",
+              backgroundColor: "var(--color-shock, #62c0fb)",
               border: "2px solid var(--color-support, #0e0d0d)",
             }}
           />
@@ -61,7 +85,7 @@ export default function LandingPage() {
         </div>
 
         <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-          <a
+          <Link
             href="#architecture"
             style={{
               fontWeight: 700,
@@ -72,8 +96,8 @@ export default function LandingPage() {
             }}
           >
             Architecture
-          </a>
-          <a
+          </Link>
+          <Link
             href="#crypto-primitives"
             style={{
               fontWeight: 700,
@@ -84,8 +108,8 @@ export default function LandingPage() {
             }}
           >
             Crypto Engine
-          </a>
-          <a
+          </Link>
+          <Link
             href="#faq"
             style={{
               fontWeight: 700,
@@ -96,12 +120,12 @@ export default function LandingPage() {
             }}
           >
             FAQ
-          </a>
+          </Link>
           <Link
             href="/dashboard"
             style={{
-              backgroundColor: "var(--color-shock, #381af8)",
-              color: "#ffffff",
+              backgroundColor: "var(--color-shock, #62c0fb)",
+              color: "var(--color-support, #0e0d0d)",
               padding: "10px 20px",
               fontWeight: 700,
               fontSize: "14px",
@@ -132,7 +156,7 @@ export default function LandingPage() {
           <div
             style={{
               display: "inline-block",
-              backgroundColor: "var(--color-identity, #51c3fc)",
+              backgroundColor: "var(--color-identity, #9286fa)",
               border: "2px solid var(--color-support, #0e0d0d)",
               padding: "6px 12px",
               fontWeight: 700,
@@ -170,15 +194,15 @@ export default function LandingPage() {
             A decentralized framework enabling healthcare institutions to collaboratively
             train medical diagnostic models without transferring raw patient datasets.
             Powered by Solana Anchor state verification, automated escrow rewards, and
-            Arcium MPC confidential aggregation.
+            Arcium MPC confidential contribution scoring.
           </p>
 
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <Link
               href="/dashboard"
               style={{
-                backgroundColor: "var(--color-shock, #381af8)",
-                color: "#ffffff",
+                backgroundColor: "var(--color-shock, #62c0fb)",
+                color: "var(--color-support, #0e0d0d)",
                 padding: "16px 32px",
                 fontWeight: 700,
                 fontSize: "16px",
@@ -190,7 +214,7 @@ export default function LandingPage() {
             >
               Open Hospital Dashboard
             </Link>
-            <a
+            <Link
               href="#architecture"
               style={{
                 backgroundColor: "#ffffff",
@@ -205,11 +229,10 @@ export default function LandingPage() {
               }}
             >
               Protocol Documentation
-            </a>
+            </Link>
           </div>
         </div>
 
-        {/* Robot Image Showcase with Brutalist Effects */}
         <div style={{ position: "relative" }}>
           <div
             style={{
@@ -218,7 +241,7 @@ export default function LandingPage() {
               left: "-16px",
               width: "100%",
               height: "100%",
-              backgroundColor: "var(--color-identity, #51c3fc)",
+              backgroundColor: "var(--color-identity, #9286fa)",
               border: "3px solid var(--color-support, #0e0d0d)",
               zIndex: 0,
             }}
@@ -238,7 +261,7 @@ export default function LandingPage() {
                 position: "relative",
                 width: "100%",
                 height: "380px",
-                backgroundColor: "var(--color-base, #f9f1f5)",
+                backgroundColor: "var(--color-base, #f7dfec)",
                 border: "2px solid var(--color-support, #0e0d0d)",
                 overflow: "hidden",
                 display: "flex",
@@ -246,24 +269,31 @@ export default function LandingPage() {
                 alignItems: "center",
               }}
             >
-              <Image
-                src="/rob.png"
-                alt="Medical Diagnostic Autonomous Node"
-                width={320}
-                height={320}
-                style={{
-                  objectFit: "contain",
-                  filter: "drop-shadow(6px 6px 0px #0e0d0d)",
-                }}
-                priority
-              />
+              <svg viewBox="0 0 320 320" width="260" height="260">
+                <g className="node-orbit">
+                  <circle cx="160" cy="60" r="14" fill="var(--color-identity, #9286fa)" stroke="#0e0d0d" strokeWidth="3" />
+                </g>
+                <g className="node-orbit" style={{ animationDelay: "-4s" }}>
+                  <circle cx="270" cy="230" r="14" fill="var(--color-shock, #62c0fb)" stroke="#0e0d0d" strokeWidth="3" />
+                </g>
+                <g className="node-orbit" style={{ animationDelay: "-8s" }}>
+                  <circle cx="50" cy="230" r="14" fill="var(--color-identity, #9286fa)" stroke="#0e0d0d" strokeWidth="3" />
+                </g>
+                <line x1="160" y1="160" x2="160" y2="60" stroke="#0e0d0d" strokeWidth="2" opacity="0.4" />
+                <line x1="160" y1="160" x2="270" y2="230" stroke="#0e0d0d" strokeWidth="2" opacity="0.4" />
+                <line x1="160" y1="160" x2="50" y2="230" stroke="#0e0d0d" strokeWidth="2" opacity="0.4" />
+                <circle cx="160" cy="160" r="34" fill="var(--color-shock, #62c0fb)" stroke="#0e0d0d" strokeWidth="3" className="node-pulse" />
+                <text x="160" y="165" textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="700" fontSize="11" fill="#0e0d0d">
+                  MXE
+                </text>
+              </svg>
               <div
                 style={{
                   position: "absolute",
                   bottom: "12px",
                   left: "12px",
-                  backgroundColor: "var(--color-shock, #381af8)",
-                  color: "#ffffff",
+                  backgroundColor: "var(--color-shock, #62c0fb)",
+                  color: "var(--color-support, #0e0d0d)",
                   padding: "4px 10px",
                   fontFamily: "var(--font-mono)",
                   fontSize: "11px",
@@ -271,7 +301,7 @@ export default function LandingPage() {
                   border: "2px solid var(--color-support, #0e0d0d)",
                 }}
               >
-                NODE_TYPE: CLINICAL_MODEL_AGENT
+                3 HOSPITAL NODES -&gt; CONFIDENTIAL SCORE
               </div>
             </div>
 
@@ -279,7 +309,7 @@ export default function LandingPage() {
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700 }}>
                 STATUS: ACTIVE_VERIFICATION
               </span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-shock, #381af8)", fontWeight: 700 }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-support, #0e0d0d)", fontWeight: 700 }}>
                 CONFIDENTIAL_COMPUTE: OK
               </span>
             </div>
@@ -305,17 +335,17 @@ export default function LandingPage() {
             gap: "24px",
           }}
         >
-          <div style={{ borderLeft: "4px solid var(--color-shock, #381af8)", paddingLeft: "16px" }}>
+          <div style={{ borderLeft: "4px solid var(--color-shock, #62c0fb)", paddingLeft: "16px" }}>
             <p style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700 }}>Settlement Layer</p>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "28px", fontWeight: 700 }}>Solana Devnet</p>
             <p style={{ fontSize: "13px", marginTop: "4px" }}>Sub-second state finalized receipts</p>
           </div>
-          <div style={{ borderLeft: "4px solid var(--color-identity, #51c3fc)", paddingLeft: "16px" }}>
+          <div style={{ borderLeft: "4px solid var(--color-identity, #9286fa)", paddingLeft: "16px" }}>
             <p style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700 }}>Privacy Engine</p>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "28px", fontWeight: 700 }}>Arcium MPC</p>
-            <p style={{ fontSize: "13px", marginTop: "4px" }}>Homomorphic encrypted aggregation</p>
+            <p style={{ fontSize: "13px", marginTop: "4px" }}>Multi-party confidential score aggregation</p>
           </div>
-          <div style={{ borderLeft: "4px solid var(--color-shock, #381af8)", paddingLeft: "16px" }}>
+          <div style={{ borderLeft: "4px solid var(--color-shock, #62c0fb)", paddingLeft: "16px" }}>
             <p style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700 }}>Program ID</p>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "15px", fontWeight: 700, wordBreak: "break-all" }}>
               {PROGRAM_ID.slice(0, 16)}...
@@ -350,8 +380,8 @@ export default function LandingPage() {
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px" }}>
-          {/* Box 1 */}
           <div
+            className="brutal-hover"
             style={{
               backgroundColor: "#ffffff",
               border: "3px solid var(--color-support, #0e0d0d)",
@@ -363,7 +393,7 @@ export default function LandingPage() {
               style={{
                 width: "40px",
                 height: "40px",
-                backgroundColor: "var(--color-identity, #51c3fc)",
+                backgroundColor: "var(--color-identity, #9286fa)",
                 border: "2px solid var(--color-support, #0e0d0d)",
                 display: "flex",
                 alignItems: "center",
@@ -385,8 +415,8 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Box 2 */}
           <div
+            className="brutal-hover"
             style={{
               backgroundColor: "#ffffff",
               border: "3px solid var(--color-support, #0e0d0d)",
@@ -398,8 +428,8 @@ export default function LandingPage() {
               style={{
                 width: "40px",
                 height: "40px",
-                backgroundColor: "var(--color-shock, #381af8)",
-                color: "#ffffff",
+                backgroundColor: "var(--color-shock, #62c0fb)",
+                color: "var(--color-support, #0e0d0d)",
                 border: "2px solid var(--color-support, #0e0d0d)",
                 display: "flex",
                 alignItems: "center",
@@ -421,8 +451,8 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Box 3 */}
           <div
+            className="brutal-hover"
             style={{
               backgroundColor: "#ffffff",
               border: "3px solid var(--color-support, #0e0d0d)",
@@ -434,7 +464,7 @@ export default function LandingPage() {
               style={{
                 width: "40px",
                 height: "40px",
-                backgroundColor: "var(--color-base, #f9f1f5)",
+                backgroundColor: "var(--color-base, #f7dfec)",
                 border: "2px solid var(--color-support, #0e0d0d)",
                 display: "flex",
                 alignItems: "center",
@@ -447,12 +477,12 @@ export default function LandingPage() {
               03
             </div>
             <h3 style={{ fontSize: "22px", fontWeight: 700, textTransform: "uppercase", marginBottom: "12px" }}>
-              Arcium Multiparty Aggregation
+              Arcium Confidential Scoring
             </h3>
             <p style={{ fontSize: "15px", lineHeight: 1.6 }}>
-              Utilizes Arcium confidential computing nodes to aggregate weight updates across participating
-              hospitals. Neither central servers nor peer institutions can inspect individual node weights
-              prior to global aggregation.
+              Each hospital's verified contribution score is aggregated across the network through Arcium's
+              confidential MPC nodes via secure multi-party computation. No individual hospital's score is
+              exposed to a central server or to peer institutions before the aggregate total is revealed.
             </p>
           </div>
         </div>
@@ -477,7 +507,7 @@ export default function LandingPage() {
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
-            <div style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f9f1f5)" }}>
+            <div className="brutal-hover" style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f7dfec)", boxShadow: "4px 4px 0 var(--color-support, #0e0d0d)" }}>
               <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "13px" }}>STAGE 01</span>
               <h4 style={{ fontSize: "18px", fontWeight: 700, textTransform: "uppercase", margin: "8px 0 12px" }}>Local Model Fit</h4>
               <p style={{ fontSize: "14px", lineHeight: 1.5 }}>
@@ -485,23 +515,24 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f9f1f5)" }}>
+            <div className="brutal-hover" style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f7dfec)", boxShadow: "4px 4px 0 var(--color-support, #0e0d0d)" }}>
               <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "13px" }}>STAGE 02</span>
               <h4 style={{ fontSize: "18px", fontWeight: 700, textTransform: "uppercase", margin: "8px 0 12px" }}>Weight Hash Commit</h4>
               <p style={{ fontSize: "14px", lineHeight: 1.5 }}>
-                Local weight update hashes are committed directly to the hospital&apos;s PDA on Solana Devnet via Anchor RPC calls.
+                Local weight update hashes are committed directly to the hospital's PDA on Solana Devnet via Anchor RPC calls.
               </p>
             </div>
 
-            <div style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f9f1f5)" }}>
+            <div className="brutal-hover" style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f7dfec)", boxShadow: "4px 4px 0 var(--color-support, #0e0d0d)" }}>
               <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "13px" }}>STAGE 03</span>
-              <h4 style={{ fontSize: "18px", fontWeight: 700, textTransform: "uppercase", margin: "8px 0 12px" }}>Confidential MPC</h4>
+              <h4 style={{ fontSize: "18px", fontWeight: 700, textTransform: "uppercase", margin: "8px 0 12px" }}>Confidential Scoring</h4>
               <p style={{ fontSize: "14px", lineHeight: 1.5 }}>
-                Encrypted weights pass through Arcium confidential computation network to perform federated averaging without exposure.
+                Verified contribution scores pass through the Arcium confidential MPC network, aggregated
+                without any single hospital's score being exposed.
               </p>
             </div>
 
-            <div style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f9f1f5)" }}>
+            <div className="brutal-hover" style={{ border: "3px solid var(--color-support, #0e0d0d)", padding: "24px", backgroundColor: "var(--color-base, #f7dfec)", boxShadow: "4px 4px 0 var(--color-support, #0e0d0d)" }}>
               <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "13px" }}>STAGE 04</span>
               <h4 style={{ fontSize: "18px", fontWeight: 700, textTransform: "uppercase", margin: "8px 0 12px" }}>On-Chain Settlement</h4>
               <p style={{ fontSize: "14px", lineHeight: 1.5 }}>
@@ -517,7 +548,7 @@ export default function LandingPage() {
         <div
           style={{
             border: "3px solid var(--color-support, #0e0d0d)",
-            backgroundColor: "var(--color-identity, #51c3fc)",
+            backgroundColor: "var(--color-identity, #9286fa)",
             padding: "32px",
             boxShadow: "6px 6px 0 var(--color-support, #0e0d0d)",
           }}
@@ -525,11 +556,15 @@ export default function LandingPage() {
           <h3 style={{ fontSize: "20px", fontWeight: 700, textTransform: "uppercase", marginBottom: "12px" }}>
             Protocol Scope and Dataset Disclaimer
           </h3>
-          <p style={{ fontSize: "15px", lineHeight: 1.6, maxWidth: "90ch" }}>
+          <p style={{ fontSize: "15px", lineHeight: 1.6, maxWidth: "90ch", marginBottom: "16px" }}>
             The datasets evaluated during simulation testing (including MedMNIST) are standardized research benchmarks.
             Per dataset publisher terms, these materials are intended exclusively for algorithmic research and infrastructure validation,
             not for direct clinical diagnosis or medical decision-making. Sinapse Protocol delivers the decentralized coordination,
             verification, and cryptoeconomic infrastructure; it does not replace medical diagnostic devices or software.
+          </p>
+          <p style={{ fontSize: "14px", lineHeight: 1.6, maxWidth: "90ch", fontStyle: "italic" }}>
+            Current devnet build: Arcium confidentially aggregates each hospital's verified contribution
+            score. Full model-weight-level confidential aggregation is on the protocol roadmap.
           </p>
         </div>
       </section>
@@ -554,7 +589,7 @@ export default function LandingPage() {
           {[
             {
               q: "How does Sinapse Protocol guarantee data privacy between competing hospital nodes?",
-              a: "Raw patient records never leave the local boundary of the hospital node. Local training occurs on-premise using isolated Python runtime workers. Only mathematical gradient matrices and model weight updates are processed. Furthermore, during weight transmission, Arcium Confidential Nodes execute Multi-Party Computation (MPC) protocols, ensuring that gradient matrices are encrypted before aggregation. Neither central coordinators nor peer institutions can reverse-engineer patient data from aggregated weights.",
+              a: "Raw patient records never leave the local boundary of the hospital node. Local training occurs on-premise using isolated Python runtime workers, following standard federated learning (FedAvg via Flower). Separately, each hospital's verified contribution score is aggregated through Arcium's confidential MPC network before being revealed on-chain - no individual hospital's score is exposed to a central coordinator or peer institution.",
             },
             {
               q: "What role does Solana play if model training happens off-chain?",
@@ -562,7 +597,7 @@ export default function LandingPage() {
             },
             {
               q: "How does the protocol prevent malicious actors from uploading garbage weights (Poisoning Attacks)?",
-              a: "The smart contract architecture includes an administration and validation governance interface capable of marking non-conforming or malicious nodes as saboteurs (isFlaggedSaboteur = true). When a node is flagged on-chain, all subsequent contribution submissions and reward disincentive mechanics are enforced directly at the smart contract level, preventing poisoned updates from corrupting global model state.",
+              a: "The smart contract includes an admin-gated instruction capable of marking non-conforming or malicious nodes as saboteurs (isFlaggedSaboteur = true). Once a node is flagged on-chain, all subsequent contribution submissions and reward payouts for that node are blocked directly at the smart contract level.",
             },
             {
               q: "How are hospital accounts structured on-chain?",
@@ -570,7 +605,7 @@ export default function LandingPage() {
             },
             {
               q: "Why is MedMNIST used in initial deployments?",
-              a: "MedMNIST provides a lightweight, standardized benchmark for clinical image classification (e.g., PathMNIST, ChestMNIST). It serves as an ideal baseline for evaluating federated learning convergence speeds, network bandwidth utilization, and RPC state synchronization without incurring massive GPU cluster costs during Devnet protocol testing.",
+              a: "MedMNIST provides a lightweight, standardized benchmark for clinical image classification. It serves as an ideal baseline for evaluating federated learning convergence speed and RPC state synchronization without incurring massive GPU cluster costs during devnet protocol testing. It is a research benchmark, not a clinically validated dataset.",
             },
             {
               q: "How do token payouts and rewards execute?",

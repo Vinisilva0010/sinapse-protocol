@@ -121,6 +121,22 @@ export default function LandingPage() {
           >
             FAQ
           </Link>
+
+          <Link
+            href="/explorer"
+            style={{
+              fontWeight: 700,
+              fontSize: "14px",
+              textTransform: "uppercase",
+              textDecoration: "none",
+              color: "var(--color-support, #0e0d0d)",
+            }}
+          >
+            Explorer
+          </Link>
+          
+
+
           <Link
             href="/dashboard"
             style={{

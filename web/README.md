@@ -1,7 +1,7 @@
 
-segundo video : https://www.youtube.com/watch?v=PDoQcNWLzxM
+terceiro video: https://www.youtube.com/watch?v=v514cCzHfPo
 
-https:/zanvendas.zanvexis.com/
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

@@ -68,13 +68,6 @@ export default function ExplorerPage() {
         const data = entry.account.data;
         const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 
-        // Layout de 58 bytes:
-        // [0..8]   Discriminator
-        // [8..40]  Authority Pubkey (32 bytes)
-        // [40..48] contributionsCount (u64 LE)
-        // [48..56] rewardedCount (u64 LE)
-        // [56]     isFlaggedSaboteur (bool)
-        // [57]     bump (u8)
         const authority = new PublicKey(data.subarray(8, 40)).toBase58();
         const contributions = Number(view.getBigUint64(40, true));
         const rewarded = Number(view.getBigUint64(48, true));
@@ -270,8 +263,8 @@ export default function ExplorerPage() {
           Network Explorer
         </h1>
         <p style={{ fontSize: "16px", marginBottom: "40px", maxWidth: "70ch" }}>
-          Public, read-only telemetry of the Sinapse Protocol state on
-          Solana Devnet. Aggregated verified parameters only.
+          Public, read-only telemetry of the Sinapse Protocol state on Solana Devnet.
+          Aggregated verified parameters only.
         </p>
 
         {state === "error" && (
@@ -458,6 +451,7 @@ export default function ExplorerPage() {
                     <th style={{ padding: "8px" }}>Rewarded</th>
                     <th style={{ padding: "8px" }}>Pending</th>
                     <th style={{ padding: "8px" }}>Status</th>
+                    <th style={{ padding: "8px" }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -506,6 +500,23 @@ export default function ExplorerPage() {
                             ACTIVE
                           </span>
                         )}
+                      </td>
+                      <td style={{ padding: "8px" }}>
+                        <Link
+                          href={`/dashboard?wallet=${h.authority}`}
+                          style={{
+                            backgroundColor: "var(--color-identity, #51c3fc)",
+                            color: "var(--color-support, #0e0d0d)",
+                            padding: "4px 10px",
+                            fontWeight: 700,
+                            textDecoration: "none",
+                            border: "2px solid var(--color-support, #0e0d0d)",
+                            fontSize: "11px",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Inspect Node
+                        </Link>
                       </td>
                     </tr>
                   ))}

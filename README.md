@@ -5,7 +5,7 @@
 Hospitals train a shared diagnostic model together — without ever sharing raw patient data, without a central party controlling the process, and without trusting each other on faith. Every contribution is verified and rewarded on-chain. Bad actors are detected and blocked automatically. Aggregate contribution scores are combined confidentially, so no participant sees another's individual number.
 
 Built for **Colosseum Eternal**.
-
+## video: https://www.youtube.com/watch?v=uofUG-L7U70
 ---
 
 ## Table of contents
